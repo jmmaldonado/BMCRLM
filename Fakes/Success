@@ -1,0 +1,8 @@
+###
+###
+# Flag the script for direct execution
+params["direct_execute"] = true
+
+#==============  User Portion of Script ==================
+
+write_to "Success\n"

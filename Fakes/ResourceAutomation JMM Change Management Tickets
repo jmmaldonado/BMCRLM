@@ -1,0 +1,64 @@
+###
+# business_justification:
+#   name: Business Justification
+###
+
+#=== Streamstep Integration Server: BRPM ===#
+# [integration_id=1]
+SS_integration_dns = "http://localhost:10080/brpm/v1"
+SS_integration_username = "admin"
+SS_integration_password = "-private-"
+SS_integration_details = ""
+SS_integration_password_enc = "__SS__Cj1RbWN3YzNjekZHYw=="
+#=== End ===#
+
+def import_script_parameters
+  { "render_as" => "Table",  "maps_to" => "Ticket"  }
+end
+
+# ResourceAutomations must be contained in an execute block
+def execute(script_params, parent_id, offset, max_records)
+  begin
+    require 'rubygems'
+    require 'savon'
+    require 'yaml'
+    require 'exceptions'
+    
+    results = [
+       ["ra_uniq_identifier","Foreign Id","Name","Ticket Type", "Status", "Extended Attributes"],
+       ["DE4444","DE4444","Backup database","Infrastructure Change","Completed",""],
+       ["DE4445","DE4445","Update version file","Infrastructure Change","In Progress",""],
+       ["DE4446","DE4446","Admin Approval","Infrastructure Change","Waiting",""],
+       ["DE4447","DE4447","QA Approval","Infrastructure Change","Waiting",""]
+    ]
+	  
+      
+      
+	# TODO: The AO adapter was not originally enabled to return total matching records and paginated results
+	# so we are setting these values to the length of the returned records for compatibility
+	paginated_results = { :perPage => results.length, 
+						:totalItems => results.length, 
+						:data => results }
+      
+	############################ END TICKET MAPPING AREA #############################################
+
+	# write the ticket data to the output file for record keeping and debugging
+	write_to("#=== TICKET DATA ===#")
+	write_to(paginated_results.to_yaml)
+	write_to("#=== END TICKET DATA ===#")
+
+	return paginated_results
+
+end
+
+rescue => e
+	if e.class.to_s.eql?('Errno::ECONNREFUSED')
+	  raise Exceptions::ResourceAutomationError.new(100), e.message
+	elsif e.message.include?('Authentication of Username Password Token Failed')
+	  raise Exceptions::ResourceAutomationError.new(101), e.message
+	elsif e.class.to_s.eql?('Exceptions::ResourceAutomationError')
+	  raise e
+	else
+	  raise Exceptions::ResourceAutomationError.new(103), e.message
+	end
+end
